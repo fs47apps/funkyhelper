@@ -146,7 +146,7 @@ module.exports = (client, logChannels, config, botContext) => {
             await reply({content:`${member?member:"User with ID `" + userId + "`"} has no warnings. Let's keep it that way, shall we?`,allowedMentions:{parse:[]}});
             return;
         }
-        userWarns = userWarns.map((data,i)=>`**#${(+i)+1}:** On <t:${~~(data.time_received/1000)}:f>\n${data.reason}\n-# Warn ID: ${data.warn_id}`);
+        userWarns = userWarns.map((data,i)=>`**#${(+i)+1}:** On <t:${~~(data.time_received/1000)}:f>${data.permanent?"\n**This warn is permanent. It will not expire.**":""}\n${data.reason}\n-# Warn ID: ${data.warn_id}`);
         await reply({content:`${member?member:"User with ID `" + userId + "`"} has ${userWarns.length} warning${userWarns.length!=1?"s":""}.\n\n${userWarns.join("\n\n")}`,allowedMentions:{parse:[]}});
     }
 
