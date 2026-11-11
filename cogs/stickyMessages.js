@@ -114,7 +114,7 @@ module.exports = (client, logChannels, config, botContext) => {
                 var embed = new EmbedBuilder();
                 embed.setTitle(`No Homebrew Assistance!`);
                 embed.setDescription(`Homebrew assistance will not be given within this channel. Please go to <#${config.helpGeneralChannelId}> or the corresponding channel for assistance.`);
-                embed.setFooter({text:"General discussion of homebrew and tech is still allowed."});
+                embed.setFooter({text:"General discussion of homebrew and tech is still permitted."});
                 embed.setColor("Gold");
             } else {
                 logChannels.important.send(`Sticky message type \`${type}\` does not exist. (Creating sticky messsage in ${channel})`);
