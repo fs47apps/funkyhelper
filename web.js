@@ -7,6 +7,7 @@ var port, config, botContext, db;
 var addLoginToDb, getUserDataFromAuthToken, deleteLoginFromDb;
 var util = require('./util');
 var ms = require('ms');
+var child_process = require('child_process');
 
 app.use(express.static('public'));
 app.use("/icons", express.static('node_modules/bootstrap-icons/font'));
@@ -159,9 +160,172 @@ app.get("/admin", async(req,res)=>{
     res.render("adminPanel", {botOwner: authData.botOwner});
 });
 
+app.get("/api/reboot", async(req,res)=>{
+    if(!req?.signedCookies?.auth_token) {
+        res.redirect("/auth/login");
+        return;
+    }
+    var authData = await checkUser(req.signedCookies.auth_token);
+    if(authData.error) {
+        res.status(401).send("Authentication error.");
+        return;
+    }
+    if(!authData.authenticated) {
+        res.clearCookie("auth_token");
+        deleteLoginFromDb.run(req.signedCookies.auth_token);
+        res.redirect("/auth/login");
+        return;
+    }
+    if(!authData.botOwner) {
+        res.status(401).send("Only Bot Owners can reboot the bot.");
+        return;
+    }
+    res.send("Rebooting!");
+    reboot();
+});
+
+app.get("/api/redeploy", async(req,res)=>{
+    if(!req?.signedCookies?.auth_token) {
+        res.redirect("/auth/login");
+        return;
+    }
+    var authData = await checkUser(req.signedCookies.auth_token);
+    if(authData.error) {
+        res.status(401).send("Authentication error.");
+        return;
+    }
+    if(!authData.authenticated) {
+        res.clearCookie("auth_token");
+        deleteLoginFromDb.run(req.signedCookies.auth_token);
+        res.redirect("/auth/login");
+        return;
+    }
+    if(!authData.botOwner) {
+        res.status(401).send("Only Bot Owners can redeploy commands from the bot.");
+        return;
+    }
+    res.send("Redeploying and rebooting!");
+    redeploy();
+    reboot();
+});
+
+app.get("/api/pullnpm", async(req,res)=>{
+    if(!req?.signedCookies?.auth_token) {
+        res.redirect("/auth/login");
+        return;
+    }
+    var authData = await checkUser(req.signedCookies.auth_token);
+    if(authData.error) {
+        res.status(401).send("Authentication error.");
+        return;
+    }
+    if(!authData.authenticated) {
+        res.clearCookie("auth_token");
+        deleteLoginFromDb.run(req.signedCookies.auth_token);
+        res.redirect("/auth/login");
+        return;
+    }
+    if(!authData.botOwner) {
+        res.status(401).send("Only Bot Owners can pull from the repo.");
+        return;
+    }
+    res.send("Pulling, updating, and rebooting!");
+    pull();
+    npm();
+    redeploy();
+    reboot();
+});
+
+app.get("/api/pull", async(req,res)=>{
+    if(!req?.signedCookies?.auth_token) {
+        res.redirect("/auth/login");
+        return;
+    }
+    var authData = await checkUser(req.signedCookies.auth_token);
+    if(authData.error) {
+        res.status(401).send("Authentication error.");
+        return;
+    }
+    if(!authData.authenticated) {
+        res.clearCookie("auth_token");
+        deleteLoginFromDb.run(req.signedCookies.auth_token);
+        res.redirect("/auth/login");
+        return;
+    }
+    if(!authData.botOwner) {
+        res.status(401).send("Only Bot Owners can pull from the repo.");
+        return;
+    }
+    res.send("Pulling and rebooting!");
+    pull();
+    redeploy();
+    reboot();
+});
+
+app.get("/api/npm", async(req,res)=>{
+    if(!req?.signedCookies?.auth_token) {
+        res.redirect("/auth/login");
+        return;
+    }
+    var authData = await checkUser(req.signedCookies.auth_token);
+    if(authData.error) {
+        res.status(401).send("Authentication error.");
+        return;
+    }
+    if(!authData.authenticated) {
+        res.clearCookie("auth_token");
+        deleteLoginFromDb.run(req.signedCookies.auth_token);
+        res.redirect("/auth/login");
+        return;
+    }
+    if(!authData.botOwner) {
+        res.status(401).send("Only Bot Owners can update packages from the bot.");
+        return;
+    }
+    res.send("Updating and rebooting!");
+    npm();
+    reboot();
+});
+
 app.use((req,res)=>{
     res.status(404).render('notFound');
 });
+
+function pull() {
+    try {
+        stdout = child_process.execSync(`git pull`).toString();
+        console.log(stdout);
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+function npm() {
+    try {
+        stdout = child_process.execSync(`npm install`).toString();
+        console.log(stdout);
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+function redeploy() {
+    try {
+        stdout = child_process.execSync(`node deployCommands.js`).toString();
+        console.log(stdout);
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+function reboot() {
+    try {
+        child_process.execSync("monit restart funkyhelper");
+    } catch(err) {
+        console.error(err);
+        botContext.exit();
+    }
+}
 
 async function init(sentConfig, sentBotContext) {
     config = sentConfig;

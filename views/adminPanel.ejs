@@ -10,9 +10,92 @@
         <%- include("partials/navbar.ejs") %>
         <div class="container my-5">
             <h1 class="fs-1 text-center">Admin Panel</h1>
+            <a href="/auth/logout">Logout</a>
             <hr>
-            <h3>You are a <%= botOwner ? "Bot Owner" : "Bot Maintainer" %>!</h3>
-            <b>You can log out by clicking <a href="/auth/logout">here</a> for now.</b>
+            <h3 class="text-center">You are a <%= botOwner ? "Bot Owner" : "Bot Maintainer" %>!</h3>
+            <br>
+            <div class="card">
+                <div class="card-body" id="page-content">
+                    <div class="d-flex align-items-start">
+                        <div class="nav nav-pills flex-column pe-3 border-end" id="menuTab" role="tablist">
+                            <span class="d-inline-block" tabindex="0" data-bs-toggle="<%= botOwner ? "none" : "popover" %>" data-bs-placement="top" data-bs-trigger="hover" data-bs-content="Available to Bot Owners only">
+                                <button class="nav-link<%= botOwner ? " active" : "" %>" id="management-tab" data-bs-toggle="tab" data-bs-target="#management-tab-pane" type="button" role="tab" <%= botOwner ? "" : "disabled" %>>
+                                    Bot Management
+                                </button>
+                            </span>
+                            <span class="d-inline-block" tabindex="1" data-bs-toggle="<%= botOwner ? "none" : "popover" %>" data-bs-placement="top" data-bs-trigger="hover" data-bs-content="Available to Bot Owners only">
+                                <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#email-tab-pane" type="button" role="tab" <%= botOwner ? "" : "disabled" %>>
+                                    Email Settings
+                                </button>
+                            </span>
+                            <span class="d-inline-block" tabindex="2">
+                                <button class="nav-link<%= botOwner ? "" : " active" %>" id="birthday-tab" data-bs-toggle="tab" data-bs-target="#birthday-tab-pane" type="button" role="tab">
+                                    Birthday Calendar
+                                </button>
+                            </span>
+                            <span class="d-inline-block" tabindex="3">
+                                <button class="nav-link" id="cmd-creation-tab" data-bs-toggle="tab" data-bs-target="#cmd-creation-tab-pane" type="button" role="tab">
+                                    Command Creation
+                                </button>
+                            </span>
+                        </div>
+                        <div class="tab-content ps-3" id="menuTabContent">
+                            <div class="tab-pane<%= botOwner ? " show active" : "" %>" id="management-tab-pane" role="tabpanel">
+                                <% if(botOwner) { %>
+                                    <h3>Stop/Reboot FunkyHelper</h3>
+                                    <span tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover" data-bs-content="Attempts to reboot the bot with monit, stops bot if that fails">
+                                        <button class="btn btn-primary" id="reboot">Normal Restart</button>
+                                    </span>
+                                    <span tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover" data-bs-content="Same as Normal Restart, but attempts to redeploy global slash commands (such as /test). Use when making changes to commands">
+                                        <button class="btn btn-secondary" id="redeploy">Restart with Redeploy</button>
+                                    </span>
+                                    <br><br>
+                                    <h3>Update FunkyHelper</h3>
+                                    <span tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover" data-bs-content="Runs 'git pull' to pull the latest changes from the repository, then restarts the bot.">
+                                        <button class="btn btn-primary" id="pullnpm">Pull from repo & install packages</button>
+                                    </span>
+                                    <span tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover" data-bs-content="Runs 'git pull' without running 'npm install' (not recommended in most instances)">
+                                        <button class="btn btn-danger" id="pull">Pull from repo w/o installing packages</button>
+                                    </span>
+                                    <br><br>
+                                    <span class="mt-3" tabindex="0" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover" data-bs-content="Runs 'npm install' to update packages">
+                                        <button class="btn btn-secondary" id="npm">Update packages</button>
+                                    </span>
+                                <% } else { %>
+                                    <div class="alert alert-danger">You are unable to access Bot Management without being a Bot Owner.</div>
+                                <% } %>
+                            </div>
+                            <div class="tab-pane" id="email-tab-pane" role="tabpanel">
+                                <% if(botOwner) { %>
+                                    Coming soon!
+                                <% } else { %>
+                                    <div class="alert alert-danger">You are unable to access Email Settings without being a Bot Owner.</div>
+                                <% } %>
+                            </div>
+                            <div class="tab-pane<%= botOwner ? "" : " show active" %>" id="birthday-tab-pane" role="tabpanel">
+                                Coming soon!
+                            </div>
+                            <div class="tab-pane" id="cmd-creation-tab-pane" role="tabpanel">
+                                Coming soon!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div class="alert alert-danger fade" role="alert" id="error">
+                Nothing to see here...
+            </div>
         </div>
+        <% if(botOwner) { %>
+        <script>
+            var botOwner = true;
+        </script>
+        <% } else { %>
+        <script>
+            var botOwner = false;
+        </script>
+        <% } %>
+        <script src="/adminPanel.js" defer></script>
     </body>
 </html>
