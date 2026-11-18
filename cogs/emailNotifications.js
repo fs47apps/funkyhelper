@@ -58,7 +58,7 @@ module.exports = (client, logChannels, config, botContext)=>{
             await emailClient.connect();
             const lock = await emailClient.getMailboxLock("INBOX");
             try {
-                const uids = await emailClient.search({ seen: false }, { uid: true });
+                const uids = await emailClient.search({ uid: true });
                 if(email.lastId) {
                     for (const uid of uids) {
                         if(uid<=email.lastId) continue;
