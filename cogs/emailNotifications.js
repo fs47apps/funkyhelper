@@ -58,12 +58,15 @@ module.exports = (client, logChannels, config, botContext)=>{
             await emailClient.connect();
             const lock = await emailClient.getMailboxLock("INBOX");
             try {
-                const uids = await emailClient.search({ uid: true });
+                const uids = await emailClient.search({ all: true }, { uid: true });
                 if(email.lastId) {
                     for (const uid of uids) {
                         if(uid<=email.lastId) continue;
                         const { content } = await emailClient.download(uid, undefined, { uid: true });
                         const parsed = await simpleParser(content);
+                        if(parsed.date.getTime()<(Date.now()-(1000*60*60*24))) {
+                            continue;
+                        }
                         emailsData.push(parsed);
                     }
                 }
