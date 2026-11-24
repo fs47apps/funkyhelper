@@ -11,13 +11,13 @@ var tempSusMessages = [];
 var dangerUserId = null;
 var scamDetectedAndBanned = false;
 
-module.exports = (client, logChannels, config) => {
+module.exports = (client, logChannels, config, botContext) => {
     async function onReady() {
         scribe = (await import('scribe.js-ocr')).default;
     }
 
     async function onMessage(message) {
-        if(!config.fullPermsMode || !config.withdrawalScamCheckEnabled) return;
+        if(!config.fullPermsMode || !config.withdrawalScamCheckEnabled || config.forceBotTrap) return;
         if((dangerUserId == message.author.id) && scamDetectedAndBanned) {
             try {
                 await message.delete();

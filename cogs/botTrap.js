@@ -4,17 +4,18 @@ var fs = require('fs');
 var path = require('path');
 var botTrapPath = path.resolve("./botTrap.json");
 var botTrapData;
+var enabled = false;
 
 module.exports = (client, logChannels, config, botContext) => {
     async function onReady() {
-        if(!config.botTrapAutoActivate) return;
+        enabled = (config.botTrapAutoActive && !botContext.msgContentIntent) || config.forceBotTrap;
         if(fs.existsSync(botTrapPath)) {
             botTrapData = require(botTrapPath);
         } else {
             botTrapData = {};
         }
         try {
-                var channel = await botContext.guild.channels.fetch(config.botTrapChannelId);
+            var channel = await botContext.guild.channels.fetch(config.botTrapChannelId);
         } catch(err) {
             await logChannels.important.send(`Failed to get bot trap channel by ID.`);
             return;
@@ -24,10 +25,10 @@ module.exports = (client, logChannels, config, botContext) => {
         } catch(err) {
             var botMessage;
         }
-        if(botContext.msgContentIntent && (!botMessage || !botTrapData.hasOwnProperty('active') || botTrapData.active)) {
+        if(!enabled && (!botMessage || !botTrapData.hasOwnProperty('active') || botTrapData.active)) {
             let embed = new EmbedBuilder()
             .setTitle("The bot trap is inactive.")
-            .setDescription("Only staff can see the channel at the moment. This channel will become active, visible, and start kicking people if message content intents are ever lost. For now, your messages will just be deleted.")
+            .setDescription("Only staff can see the channel at the moment. This channel will become active, visible, and start kicking people if message content intents are ever lost or if it is turned on with the `forceBotTrap` config setting. For now, your messages will just be deleted.")
             .setColor("Green");
             try {
                 if(botMessage) {
@@ -41,7 +42,7 @@ module.exports = (client, logChannels, config, botContext) => {
             botTrapData.active = false;
             updateBotTrapFile();
             await channel.permissionOverwrites.edit(botContext.guild.roles.everyone, {ViewChannel: false});
-        } else if(!botContext.msgContentIntent && (!botMessage || !botTrapData.hasOwnProperty('active') || !botTrapData.active)) {
+        } else if(enabled && (!botMessage || !botTrapData.hasOwnProperty('active') || !botTrapData.active)) {
             let embed = new EmbedBuilder()
             .setTitle("Do NOT send messages here or you will be kicked!")
             .setDescription("This is a trap for bots. If you send a message here, you will be kicked from the server. We recommend hiding this channel from your channel list in <id:customize>.")
@@ -62,9 +63,8 @@ module.exports = (client, logChannels, config, botContext) => {
     }
 
     async function onMessage(message) {
-        if(!config.botTrapAutoActivate) return;
         if(message.channel.id != config.botTrapChannelId) return;
-        if(botContext.msgContentIntent) {
+        if(!enabled) {
             await message.delete();
             return;
         }
@@ -89,6 +89,7 @@ module.exports = (client, logChannels, config, botContext) => {
             await user.ban({deleteMessageSeconds: 60 * 60 * 24, reason: ".scamkick run by "+message.member.user.username});
         } catch(err) {
             await logChannels.important.send(`<@&${config.activeModeratorsId}> Warning! ${user} was unable to be banned!\nReason: ` + (err?(err.message??"syke lmao"):"syke lmao"));
+            await message.delete();
             return;
         }
 
@@ -108,6 +109,7 @@ module.exports = (client, logChannels, config, botContext) => {
 
     return {
         onReady,
-        onMessage
+        onMessage,
+        botTrapData
     };
 }
