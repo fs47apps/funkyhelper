@@ -101,7 +101,7 @@ module.exports = (client, logChannels, config, botContext) => {
             return;
         }
 
-        await logChannels.important.send("Ban succeeded. Attempting to unban user...");
+        await logChannels.normal.send("Ban succeeded. Attempting to unban user...");
         try {
             await botContext.guild.bans.remove(userId);
             await logChannels.normal.send("Unban succeeded.");
