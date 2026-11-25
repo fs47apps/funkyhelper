@@ -118,4 +118,6 @@ module.exports = (client, logChannels, config, botContext) => {
     return {
         onReady,
         onMessage,
-   n
+        botTrapData
+    };
+}
