@@ -72,23 +72,31 @@ module.exports = (client, logChannels, config, botContext) => {
         var user = message.member;
         var userId = user.id;
 
+        let botTrapGottemEmbed = new EmbedBuilder();
+        botTrapGottemEmbed.setTitle("Bot Trap has caught a user!");
+        botTrapGottemEmbed.setAuthor({name: message.author.username, iconURL: message.author.displayAvatarURL({extension:"png",size:2048})});
+        botTrapGottemEmbed.setDescription(`${user?.displayName ? (user.displayName + " ("  + message.author.username + ")") : message.author.username} sent a message in <#${config.botTrapChannelId}>.\nThe user will now be kicked and all messages in the last 24 hours will be removed.`);
+        botTrapGottemEmbed.setColor("Red");
+        botTrapGottemEmbed.setFooter({text:"User ID: " + userId});
+        await logChannels.important.send({embeds: [botTrapGottemEmbed]});
+
         try {
             let scamKickedEmbed = new EmbedBuilder();
             scamKickedEmbed.setTitle("Suspicious Activity");
             scamKickedEmbed.setDescription("You have been kicked from " + message.guild.name + " due to messages that seem to be created by a bot that has hijacked your account. Once you have verified that your account is back under your control, you can rejoin [here](https://discord.gg/eVQkMaTQw2).");
             scamKickedEmbed.setColor("DarkRed");
             await user.send({embeds: [scamKickedEmbed]});
-            await logChannels.important.send("DM succeeded!");
+            await logChannels.normal.send("DM succeeded!");
         } catch(err) {
-            await logChannels.important.send("DM failed. (DMs are likely disabled by the user.) Continuing regardless...");
+            await logChannels.normal.send("DM failed. (DMs are likely disabled by the user.) Continuing regardless...");
         }
 
         try {
-            await logChannels.important.send("Attempting to ban user (temporarily in order to remove messages)...");
+            await logChannels.normal.send("Attempting to ban user (temporarily in order to remove messages)...");
             if(util.hasRole(user, config.staffRoleList)) throw Error("Member is staff, ban protection activated");
             await user.ban({deleteMessageSeconds: 60 * 60 * 24, reason: ".scamkick run by "+message.member.user.username});
         } catch(err) {
-            await logChannels.important.send(`<@&${config.activeModeratorsId}> Warning! ${user} was unable to be banned!\nReason: ` + (err?(err.message??"syke lmao"):"syke lmao"));
+            await logChannels.normal.send(`<@&${config.activeModeratorsId}> Warning! ${user} was unable to be banned!\nReason: ` + (err?(err.message??"syke lmao"):"syke lmao"));
             await message.delete();
             return;
         }
@@ -96,9 +104,9 @@ module.exports = (client, logChannels, config, botContext) => {
         await logChannels.important.send("Ban succeeded. Attempting to unban user...");
         try {
             await botContext.guild.bans.remove(userId);
-            await logChannels.important.send("Unban succeeded.");
+            await logChannels.normal.send("Unban succeeded.");
         } catch(err) {
-            await logChannels.important.send(`<@&${config.activeModeratorsId}> Warning! ${user} was unable to be unbanned! Please ensure that user is able to rejoin server.\nReason: ` + (err?(err.message??"syke lmao"):"syke lmao"));
+            await logChannels.normal.send(`<@&${config.activeModeratorsId}> Warning! ${user} was unable to be unbanned! Please ensure that user is able to rejoin server.\nReason: ` + (err?(err.message??"syke lmao"):"syke lmao"));
         }
 
     }
@@ -110,6 +118,4 @@ module.exports = (client, logChannels, config, botContext) => {
     return {
         onReady,
         onMessage,
-        botTrapData
-    };
-}
+   n
